@@ -52,6 +52,36 @@ button{font:inherit;color:inherit;cursor:pointer}
 .bump{animation:bump .35s}
 @keyframes bump{40%{transform:scale(1.18)}}
 
+
+/* Menú minimalista */
+.bar .wrap{height:72px}
+.bar .brand img{transition:opacity .25s}
+.bar .brand:hover img{opacity:.7}
+.menu{display:flex;gap:6px}
+.menu a{position:relative;display:block;overflow:hidden;padding:8px 14px;height:38px;border-radius:999px;
+  font-family:var(--body);font-weight:500;font-size:15px;line-height:22px;letter-spacing:.005em;text-transform:none;text-decoration:none;
+  color:var(--ash);transition:color .25s,background .25s,opacity .25s}
+.menu a span{display:block;transition:transform .45s cubic-bezier(.7,0,.2,1)}
+.menu a::after{content:attr(data-t);position:absolute;left:14px;top:calc(100% + 8px);color:var(--bone);transition:transform .45s cubic-bezier(.7,0,.2,1)}
+.menu a:hover span,.menu a:focus-visible span{transform:translateY(-38px)}
+.menu a:hover::after,.menu a:focus-visible::after{transform:translateY(-38px)}
+.menu:hover a:not(:hover){opacity:.4}
+.menu a[aria-current="true"]{color:var(--bone);background:rgba(232,229,220,.09)}
+.bar .cart-btn{font-family:var(--body);font-weight:600;font-size:14px;letter-spacing:0;text-transform:none;padding:9px 10px 9px 18px;transition:transform .25s,background .25s,color .25s}
+.bar .cart-btn:hover{background:var(--blood);color:var(--bone)}
+.bar .cart-btn:hover b{background:var(--bone);color:var(--blood)}
+.bar .cart-btn:active{transform:scale(.96)}
+section[id],footer[id]{scroll-margin-top:84px}
+@media (hover:none){
+  .menu a:hover span,.menu a:hover::after{transform:none}
+  .menu:hover a:not(:hover){opacity:1}
+}
+@media (max-width:720px){
+  .bar .wrap{height:auto}
+  .menu{gap:2px;margin-inline:-8px;width:calc(100% + 16px)}
+  .menu a{flex:0 0 auto;font-size:15px}
+}
+
 /* Hero */
 .hero{padding-block:40px 56px;position:relative;overflow:hidden}
 .hero-grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr) 120px;gap:32px;align-items:end}
@@ -85,12 +115,14 @@ button{font:inherit;color:inherit;cursor:pointer}
 .btn.red:hover{background:transparent}
 .btn.block{width:100%}
 
+
 /* Marquee */
 .marquee{border-block:1px solid var(--line);overflow:hidden;background:var(--coal)}
 .marquee div{display:flex;width:max-content;animation:slide 28s linear infinite}
 .marquee span{font-family:var(--display);text-transform:uppercase;font-size:clamp(22px,3vw,34px);padding:14px 28px;white-space:nowrap}
 .marquee span:nth-child(even){color:var(--blood)}
 @keyframes slide{to{transform:translateX(-50%)}}
+
 
 /* Colección */
 .sec{padding-block:88px}
@@ -260,7 +292,7 @@ button,a,select{-webkit-tap-highlight-color:transparent}
   /* Header: logo + carrito arriba, menú deslizable debajo */
   .bar .wrap{flex-wrap:wrap;height:auto;row-gap:0;padding-top:10px}
   .bar .brand img{height:30px}
-  .bar nav{display:flex;order:3;width:100%;gap:22px;overflow-x:auto;white-space:nowrap;padding:10px 0 12px;margin-top:2px;border-top:1px solid var(--line);scrollbar-width:none}
+  .bar nav{display:flex;order:3;overflow-x:auto;white-space:nowrap;padding:8px 0 10px;margin-top:6px;border-top:1px solid var(--line);scrollbar-width:none}
   .bar nav::-webkit-scrollbar{display:none}
   .cart-btn{padding:8px 14px}
 
@@ -366,13 +398,13 @@ button,a,select{-webkit-tap-highlight-color:transparent}
 <header class="bar">
   <div class="wrap">
     <a class="brand" href="#top" aria-label="GAMF STORE, inicio"><img src="img/logo-white.png" alt="GAMF STORE"></a>
-    <nav class="mono" aria-label="Principal">
-      <a href="#coleccion">Colección</a>
-      <a href="#lookbook">Lookbook</a>
-      <a href="#pedido">Cómo pedir</a>
-      <a href="#contacto">Contacto</a>
+    <nav class="menu" aria-label="Principal">
+      <a href="#coleccion" data-t="Colección"><span>Colección</span></a>
+      <a href="#lookbook" data-t="Lookbook"><span>Lookbook</span></a>
+      <a href="#pedido" data-t="Cómo pedir"><span>Cómo pedir</span></a>
+      <a href="#contacto" data-t="Contacto"><span>Contacto</span></a>
     </nav>
-    <button class="cart-btn mono" id="openCart" aria-label="Abrir carrito">Carrito <b id="count">0</b></button>
+    <button class="cart-btn" id="openCart" aria-label="Abrir carrito">Carrito <b id="count">0</b></button>
   </div>
 </header>
 
@@ -804,6 +836,77 @@ button,a,select{-webkit-tap-highlight-color:transparent}
 
   /* Events */
   document.addEventListener("click",function(e){
+    var pic=e.target.closest(".pic[data-view],#stage");
+    if(pic&&!e.target.closest("button")){openQV(pic.id==="stage"?P[heroIdx].id:pic.dataset.view);return;}
+    var t=e.target.closest("button,a");if(!t)return;
+    if(t.dataset.fav){toggleFav(t.dataset.fav);return;}
+    if(t.id==="qvFav"){toggleFav(qvId);return;}
+    if(t.id==="qvPrev"){stepQV(-1);return;}
+    if(t.id==="qvNext"){stepQV(1);return;}
+    if(t.id==="qvClose"){closeQV();return;}
+    if(t.dataset.add){
+      var card=t.closest(".card"),src=card?card.querySelector(".pic img"):(t.closest("#qv")?$("#qvImg"):$("#stageImg"));
+      add(t.dataset.add,src);return;
+    }
+    if(t.classList.contains("size")){
+      sel[t.dataset.id]=t.dataset.size;
+      document.querySelectorAll('.size[data-id="'+t.dataset.id+'"]').forEach(function(b){b.setAttribute("aria-pressed",String(b.dataset.size===t.dataset.size));});
+      return;
+    }
+    if(t.dataset.hero!==undefined){autoOn=false;setHero(+t.dataset.hero);return;}
+    if(t.dataset.f){filter=t.dataset.f;document.querySelectorAll(".chip").forEach(function(c){c.setAttribute("aria-pressed",String(c===t));});renderGrid();return;}
+    if(t.dataset.q){var l=cart[+t.dataset.i];l.qty+=+t.dataset.q;if(l.qty<1)cart.splice(+t.dataset.i,1);save();renderCart();return;}
+    if(t.dataset.rm!==undefined){cart.splice(+t.dataset.rm,1);save();renderCart();return;}
+    if(t.id==="openCart")openCart(true);
+    if(t.id==="closeCart")openCart(false);
+  });
+  $("#scrim").addEventListener("click",function(){openCart(false);});
+  document.addEventListener("keydown",function(e){
+    if(e.key==="Escape"){if(qvId)closeQV();else if($("#drawer").classList.contains("on"))openCart(false);}
+    if(qvId&&e.key==="ArrowLeft")stepQV(-1);
+    if(qvId&&e.key==="ArrowRight")stepQV(1);
+  });
+
+  /* Parallax del lookbook */
+  var par=[].slice.call(document.querySelectorAll("[data-par]")),ticking=false;
+  var reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function onScroll(){
+    if(reduce||ticking)return;ticking=true;
+    requestAnimationFrame(function(){
+      var vh=innerHeight;
+      par.forEach(function(el){var r=el.parentNode.getBoundingClientRect();
+        if(r.bottom<0||r.top>vh)return;
+        var d=(r.top+r.height/2-vh/2)*parseFloat(el.dataset.par);
+        el.style.transform="translateY("+d.toFixed(1)+"px)";});
+      ticking=false;
+    });
+  }
+  addEventListener("scroll",onScroll,{passive:true});
+
+  /* WhatsApp del footer */
+  $("#waFoot").href="https://wa.me/"+WA+"?text="+encodeURIComponent("Hola GAMF STORE, quiero información.");
+
+  /* Menú: resalta la sección que estás viendo */
+  var links=[].slice.call(document.querySelectorAll(".menu a"));
+  if(links.length&&"IntersectionObserver" in window){
+    var spy=new IntersectionObserver(function(es){
+      es.forEach(function(e){
+        if(!e.isIntersecting)return;
+        links.forEach(function(a){a.setAttribute("aria-current",String(a.getAttribute("href")==="#"+e.target.id));});
+        var on=links.filter(function(a){return a.getAttribute("aria-current")==="true";})[0];
+        if(on&&on.scrollIntoView&&innerWidth<=720)on.parentNode.scrollTo({left:on.offsetLeft-16,behavior:"smooth"});
+      });
+    },{rootMargin:"-45% 0px -50% 0px"});
+    ["coleccion","lookbook","pedido","contacto"].forEach(function(id){var el=document.getElementById(id);if(el)spy.observe(el);});
+    addEventListener("scroll",function(){if(scrollY<200)links.forEach(function(a){a.setAttribute("aria-current","false");});},{passive:true});
+  }
+
+  renderHero();renderGrid();renderCart();onScroll();
+
+})();
+</script>
+
+</body></html>er("click",function(e){
     var pic=e.target.closest(".pic[data-view],#stage");
     if(pic&&!e.target.closest("button")){openQV(pic.id==="stage"?P[heroIdx].id:pic.dataset.view);return;}
     var t=e.target.closest("button,a");if(!t)return;
